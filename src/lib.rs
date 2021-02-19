@@ -9,7 +9,7 @@ pub mod date_component {
         pub interval_day: isize,
     }
     
-    pub fn calculate_date_component(date1: &DateTime<Utc>, date2: &DateTime<Utc>) -> DateComponent {
+    pub fn calculate(date1: &DateTime<Utc>, date2: &DateTime<Utc>) -> DateComponent {
         let duration = date1.signed_duration_since(*date2);
         let (from, to) = match duration.num_seconds() {
             x if x <0 => (date1, date2),
@@ -53,7 +53,7 @@ mod tests {
         let date1 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
         let date2 =  Utc.ymd(2015, 12, 19).and_hms(0, 0, 0);
         
-        let date_interval = calculate_date_component(&date1, &date2);
+        let date_interval = calculate(&date1, &date2);
         assert_eq!(date_interval, DateComponent {
             year: 0,
             month: 7,
@@ -67,7 +67,7 @@ mod tests {
         let date1 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
         let date2 =  Utc.ymd(2015, 12, 21).and_hms(0, 0, 0);
     
-        let date_interval = calculate_date_component(&date1, &date2);
+        let date_interval = calculate(&date1, &date2);
         assert_eq!(date_interval, DateComponent {
             year: 0,
             month: 8,
@@ -81,7 +81,7 @@ mod tests {
         let date1 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
         let date2 =  Utc.ymd(2016, 2, 19).and_hms(0, 0, 0);
     
-        let date_interval = calculate_date_component(&date1, &date2);
+        let date_interval = calculate(&date1, &date2);
         assert_eq!(date_interval, DateComponent {
             year: 0,
             month: 9,
@@ -95,7 +95,7 @@ mod tests {
         let date1 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
         let date2 =  Utc.ymd(2016, 2, 21).and_hms(0, 0, 0);
     
-        let date_interval = calculate_date_component(&date1, &date2);
+        let date_interval = calculate(&date1, &date2);
         assert_eq!(date_interval, DateComponent {
             year: 0,
             month: 10,
@@ -109,7 +109,7 @@ mod tests {
         let date1 = Utc.ymd(2016, 3, 20).and_hms(0, 0, 0);
         let date2 =  Utc.ymd(2016, 3, 20).and_hms(0, 0, 0);
     
-        let date_interval = calculate_date_component(&date1, &date2);
+        let date_interval = calculate(&date1, &date2);
         assert_eq!(date_interval, DateComponent {
             year: 0,
             month: 0,
