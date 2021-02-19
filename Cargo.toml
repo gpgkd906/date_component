@@ -1,13 +1,13 @@
 [package]
 name = "date_component"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["chenhan <gpgkd906@gmail.com>"]
 edition = "2018"
 license = "MIT"
 description = "the missed date_component with chrono."
 homepage = "https://github.com/gpgkd906/date_component/"
 repository = "https://github.com/gpgkd906/date_component/"
-documentation = "https://github.com/gpgkd906/date_component/"
+documentation = "https://gpgkd906.github.io/date_component/date_component/"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

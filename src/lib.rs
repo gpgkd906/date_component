@@ -3,18 +3,23 @@ pub mod date_component {
 
     #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct DateComponent {
+        /// Number of years.
         pub year: isize,
+        /// Number of months.
         pub month:isize,
+        /// Number of days.
         pub day: isize,
+        /// total number of days between the start and end dates
         pub interval_day: isize,
-        pub invert: i8,
+        /// Is true if the interval represents a negative time period and false otherwise
+        pub invert: bool,
     }
     
     pub fn calculate(date1: &DateTime<Utc>, date2: &DateTime<Utc>) -> DateComponent {
         let duration = date1.signed_duration_since(*date2);
         let (from, to, invert) = match duration.num_seconds() {
-            x if x <0 => (date1, date2, -1),
-            _ => (date2, date1, 1)
+            x if x <=0 => (date1, date2, false),
+            _ => (date2, date1, true)
         };
         let diff_year  = to.year() - from.year();
         
@@ -61,13 +66,14 @@ mod tests {
             month: 7,
             day: 29,
             interval_day: 243,
+            invert: false,
         });
     }
     
     #[test]
     fn case2() {
-        let date1 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
-        let date2 =  Utc.ymd(2015, 12, 21).and_hms(0, 0, 0);
+        let date1 =  Utc.ymd(2015, 12, 21).and_hms(0, 0, 0);
+        let date2 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
     
         let date_interval = calculate(&date1, &date2);
         assert_eq!(date_interval, DateComponent {
@@ -75,13 +81,14 @@ mod tests {
             month: 8,
             day: 1,
             interval_day: 245,
+            invert: true,
         });
     }
     
     #[test]
     fn case3() {
-        let date1 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
-        let date2 =  Utc.ymd(2016, 2, 19).and_hms(0, 0, 0);
+        let date1 =  Utc.ymd(2016, 2, 19).and_hms(0, 0, 0);
+        let date2 = Utc.ymd(2015, 4, 20).and_hms(0, 0, 0);
     
         let date_interval = calculate(&date1, &date2);
         assert_eq!(date_interval, DateComponent {
@@ -89,6 +96,7 @@ mod tests {
             month: 9,
             day: 30,
             interval_day: 305,
+            invert: true,
         });
     }
     
@@ -103,6 +111,7 @@ mod tests {
             month: 10,
             day: 1,
             interval_day: 307,
+            invert: false,
         });
     }
     
@@ -117,6 +126,7 @@ mod tests {
             month: 0,
             day: 0,
             interval_day: 0,
+            invert: false,
         });
     }
 }

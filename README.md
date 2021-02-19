@@ -2,6 +2,8 @@
 
 calculate date interval with chrono.
 
+# API
+https://gpgkd906.github.io/date_component/date_component/
 # Example
 
 ```rust
