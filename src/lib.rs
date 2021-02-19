@@ -7,13 +7,14 @@ pub mod date_component {
         pub month:isize,
         pub day: isize,
         pub interval_day: isize,
+        pub invert: i8,
     }
     
     pub fn calculate(date1: &DateTime<Utc>, date2: &DateTime<Utc>) -> DateComponent {
         let duration = date1.signed_duration_since(*date2);
-        let (from, to) = match duration.num_seconds() {
-            x if x <0 => (date1, date2),
-            _ => (date2, date1)
+        let (from, to, invert) = match duration.num_seconds() {
+            x if x <0 => (date1, date2, -1),
+            _ => (date2, date1, 1)
         };
         let diff_year  = to.year() - from.year();
         
@@ -37,6 +38,7 @@ pub mod date_component {
             month: interval_month as isize,
             day: interval_day as isize,
             interval_day: duration.num_days().abs() as isize,
+            invert,
         }
     }
     
