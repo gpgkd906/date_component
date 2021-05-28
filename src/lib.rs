@@ -31,12 +31,25 @@ pub mod date_component {
 
         let diff_day   = to.day() as i32 - from.day() as i32;
         let (interval_day, interval_month) = match diff_day {
-            x if x < 0 => (Utc.ymd(to.year(), to.month() - 1, from.day())
-                        .and_hms(to.hour(), to.minute(), to.second())
-                        .signed_duration_since(*to).num_days().abs(), interval_month - 1),
-            _ => (Utc.ymd(to.year(), to.month(), from.day())
-                        .and_hms(to.hour(), to.minute(), to.second())
-                        .signed_duration_since(*to).num_days().abs(), interval_month)
+            x if x < 0 => (
+                Utc.ymd(
+                    if to.month() > 1 { to.year() } else { to.year() - 1 },
+                    if to.month() > 1 { to.month() - 1 } else { 12 },
+                    from.day(),
+                ).and_hms(to.hour(), to.minute(), to.second())
+                .signed_duration_since(*to).num_days().abs(),
+                interval_month - 1,
+            ),
+            _ => (
+                Utc.ymd(to.year(), to.month(), from.day())
+                    .and_hms(to.hour(), to.minute(), to.second())
+                    .signed_duration_since(*to).num_days().abs(),
+                interval_month,
+            ),
+        };
+        let (interval_year, interval_month) = match interval_month {
+            x if x < 0 => (interval_year - 1, interval_month + 12),
+            _ => (interval_year, interval_month),
         };
         DateComponent {
             year: interval_year as isize,
@@ -128,5 +141,41 @@ mod tests {
             interval_day: 0,
             invert: false,
         });
+    }
+
+    #[test]
+    fn case6() {
+        let date1 = Utc.ymd(2015, 12, 30).and_hms(0, 0, 0);
+        let date2 = Utc.ymd(2016, 1, 1).and_hms(0, 0, 0);
+
+        let date_interval = calculate(&date1, &date2);
+        assert_eq!(
+            date_interval,
+            DateComponent {
+                year: 0,
+                month: 0,
+                day: 2,
+                interval_day: 2,
+                invert: false,
+            }
+        );
+    }
+
+    #[test]
+    fn case7() {
+        let date1 = Utc.ymd(2020, 2, 29).and_hms(0, 0, 0);
+        let date2 = Utc.ymd(2021, 2, 1).and_hms(0, 0, 0);
+
+        let date_interval = calculate(&date1, &date2);
+        assert_eq!(
+            date_interval,
+            DateComponent {
+                year: 0,
+                month: 11,
+                day: 3,
+                interval_day: 338,
+                invert: false,
+            }
+        );
     }
 }
