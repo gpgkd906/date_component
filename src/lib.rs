@@ -22,35 +22,28 @@ pub mod date_component {
             _ => (date2, date1, true)
         };
         let diff_year  = to.year() - from.year();
-        
         let diff_month = to.month() as i32 - from.month() as i32;
-        let (interval_year, interval_month) = match diff_month {
-            x if x < 0 => (diff_year - 1, diff_month + 12),
-            _ => (diff_year, diff_month),
+        let diff_day   = to.day() as i32 - from.day() as i32;
+
+        let (to_year, to_month) = match to.month() {
+            x if x > 1 => (to.year(), to.month() - 1),
+            _ => (to.year() - 1, 12),
         };
 
-        let diff_day   = to.day() as i32 - from.day() as i32;
         let (interval_day, interval_month) = match diff_day {
-            x if x < 0 => (
-                Utc.ymd(
-                    if to.month() > 1 { to.year() } else { to.year() - 1 },
-                    if to.month() > 1 { to.month() - 1 } else { 12 },
-                    from.day(),
-                ).and_hms(to.hour(), to.minute(), to.second())
-                .signed_duration_since(*to).num_days().abs(),
-                interval_month - 1,
-            ),
-            _ => (
-                Utc.ymd(to.year(), to.month(), from.day())
-                    .and_hms(to.hour(), to.minute(), to.second())
-                    .signed_duration_since(*to).num_days().abs(),
-                interval_month,
-            ),
+            x if x < 0 => (Utc.ymd(to_year, to_month, from.day())
+                        .and_hms(to.hour(), to.minute(), to.second())
+                        .signed_duration_since(*to).num_days().abs(), diff_month - 1),
+            _ => (Utc.ymd(to.year(), to.month(), from.day())
+                        .and_hms(to.hour(), to.minute(), to.second())
+                        .signed_duration_since(*to).num_days().abs(), diff_month)
         };
+
         let (interval_year, interval_month) = match interval_month {
-            x if x < 0 => (interval_year - 1, interval_month + 12),
-            _ => (interval_year, interval_month),
+            x if x < 0 => (diff_year - 1, interval_month + 12),
+            _ => (diff_year, interval_month),
         };
+
         DateComponent {
             year: interval_year as isize,
             month: interval_month as isize,
@@ -175,6 +168,42 @@ mod tests {
                 day: 3,
                 interval_day: 338,
                 invert: false,
+            }
+        );
+    }
+
+    #[test]
+    fn case8() {
+        let date1 = Utc.ymd(2010, 11, 06).and_hms(0, 0, 0);
+        let date2 = Utc.ymd(2010, 10, 04).and_hms(0, 0, 0);
+
+        let date_interval = calculate(&date1, &date2);
+        assert_eq!(
+            date_interval,
+            DateComponent {
+                year: 0,
+                month: 1,
+                day: 2,
+                interval_day: 33,
+                invert: true,
+            }
+        );
+    }
+
+    #[test]
+    fn case9() {
+        let date1 = Utc.ymd(2010, 11, 07).and_hms(0, 0, 0);
+        let date2 = Utc.ymd(2010, 11, 06).and_hms(0, 0, 0);
+
+        let date_interval = calculate(&date1, &date2);
+        assert_eq!(
+            date_interval,
+            DateComponent {
+                year: 0,
+                month: 0,
+                day: 1,
+                interval_day: 1,
+                invert: true,
             }
         );
     }
