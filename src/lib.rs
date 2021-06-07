@@ -31,7 +31,7 @@ pub mod date_component {
         };
 
         let (interval_day, interval_month) = match diff_day {
-            x if x < 0 => (Utc.ymd(to_year, to_month, from.day())
+            x if x < 0 => (adjust_ymd(to_year, to_month, from.day())
                         .and_hms(to.hour(), to.minute(), to.second())
                         .signed_duration_since(*to).num_days().abs(), diff_month - 1),
             _ => (Utc.ymd(to.year(), to.month(), from.day())
@@ -52,7 +52,24 @@ pub mod date_component {
             invert,
         }
     }
-    
+
+    /// Given date specified by year / month / day where the `day` may be invalid,
+    /// (e.g. 2021-02-30), return the nearest valid day before it
+    /// (e.g. 2021-02-28).
+    fn adjust_ymd(year: i32, month: u32, day: u32) -> Date<Utc> {
+        let mut subtract = 0;
+        loop {
+            match Utc.ymd_opt(year, month, day - subtract) {
+                chrono::LocalResult::None => subtract += 1,
+                chrono::LocalResult::Single(d) => {
+                    return d;
+                }
+                chrono::LocalResult::Ambiguous(d, _) => {
+                    return d;
+                }
+            }
+        }
+    }
 }
 
 
@@ -204,6 +221,24 @@ mod tests {
                 day: 1,
                 interval_day: 1,
                 invert: true,
+            }
+        );
+    }
+
+    #[test]
+    fn case10() {
+        let date1 = Utc.ymd(2022, 1, 30).and_hms(0, 0, 0);
+        let date2 = Utc.ymd(2022, 3, 1).and_hms(0, 0, 0);
+
+        let date_interval = calculate(&date1, &date2);
+        assert_eq!(
+            date_interval,
+            DateComponent {
+                year: 0,
+                month: 1,
+                day: 1,
+                interval_day: 30,
+                invert: false,
             }
         );
     }
