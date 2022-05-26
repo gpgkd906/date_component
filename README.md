@@ -18,5 +18,5 @@ fn main() {
     let date_interval = date_component::calculate(&date1, &date2);
     println!("{:?}", date_interval);
 }
-// DateComponent { year: 0, month: 7, day: 29, interval_day: 243 }
+// DateComponent { year: 0, month: 7, day: 29, seconds: 20995200, minutes: 349920, hours: 5832, interval_day: 243, invert: false }
 ```
