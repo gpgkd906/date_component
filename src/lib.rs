@@ -118,6 +118,86 @@ mod tests {
   use chrono::prelude::*;
 
   #[test]
+  fn case_1_year_interval() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2021, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.year, 1);
+    assert_eq!(sut.invert, false);
+  }
+
+  #[test]
+  fn case_1_year_inverted_interval() {
+    let from = Utc.ymd(2021, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.year, 1);
+    assert_eq!(sut.invert, true);
+  }
+
+  #[test]
+  fn case_1_month_interval() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 2, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.month, 1);
+    assert_eq!(sut.invert, false);
+  }
+
+  #[test]
+  fn case_1_month_inverted_interval() {
+    let from = Utc.ymd(2020, 2, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.month, 1);
+    assert_eq!(sut.invert, true);
+  }
+
+  #[test]
+  fn case_1_week_interval() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 8).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.week, 1);
+    assert_eq!(sut.invert, false);
+  }
+
+  #[test]
+  fn case_1_week_inverted_interval() {
+    let from = Utc.ymd(2020, 1, 8).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.week, 1);
+    assert_eq!(sut.invert, true);
+  }
+
+  #[test]
+  fn case_1_day_interval() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 2).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.day, 1);
+    assert_eq!(sut.invert, false);
+  }
+
+  #[test]
+  fn case_1_day_inverted_interval() {
+    let from = Utc.ymd(2020, 1, 2).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.day, 1);
+    assert_eq!(sut.invert, true);
+  }
+
+  #[test]
   fn case1() {
     let from_datetime = Utc.ymd(2012, 4, 20).and_hms(0, 0, 0);
     let to_datetime = Utc.ymd(2015, 12, 19).and_hms(0, 0, 0);
