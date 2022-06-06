@@ -461,55 +461,55 @@ mod tests {
     assert_eq!(sut.invert, true);
   }
 
-  // #[test]
-  // fn test_next_year_month_day_hour_minute_second() {
-  //   let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
-  //   let to = Utc.ymd(2021, 2, 8).and_hms(1, 1, 1);
-  //   let duration = to.signed_duration_since(from);
+  #[test]
+  fn test_next_year_month_day_hour_minute_second() {
+    let from = Utc.ymd(2020, 1, 6).and_hms(0, 0, 0);
+    let to = Utc.ymd(2021, 2, 14).and_hms(1, 1, 1);
+    let duration = to.signed_duration_since(from);
 
-  //   let sut = calculate(&from, &to);
-  //   assert_eq!(
-  //     sut,
-  //     DateComponent {
-  //       year: 1,
-  //       month: 1,
-  //       week: 1,
-  //       day: 1,
-  //       hour: 1,
-  //       minute: 1,
-  //       second: 1,
-  //       interval_days: duration.num_days().abs() as isize,
-  //       interval_hours: duration.num_hours().abs() as isize,
-  //       interval_minutes: duration.num_minutes().abs() as isize,
-  //       interval_seconds: duration.num_seconds().abs() as isize,
-  //       invert: false,
-  //     }
-  //   );
-  // }
+    let sut = calculate(&from, &to);
+    assert_eq!(
+      sut,
+      DateComponent {
+        year: 1,
+        month: 1,
+        week: 1,
+        day: 1,
+        hour: 1,
+        minute: 1,
+        second: 1,
+        interval_days: duration.num_days().abs() as isize,
+        interval_hours: duration.num_hours().abs() as isize,
+        interval_minutes: duration.num_minutes().abs() as isize,
+        interval_seconds: duration.num_seconds().abs() as isize,
+        invert: false,
+      }
+    );
+  }
 
-  // #[test]
-  // fn test_previous_year_month_day_hour_minute_second() {
-  //   let from = Utc.ymd(2021, 2, 8).and_hms(1, 1, 1);
-  //   let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
-  //   let duration = to.signed_duration_since(from);
+  #[test]
+  fn test_previous_year_month_day_hour_minute_second() {
+    let from = Utc.ymd(2021, 2, 14).and_hms(1, 1, 1);
+    let to = Utc.ymd(2020, 1, 6).and_hms(0, 0, 0);
+    let duration = to.signed_duration_since(from);
 
-  //   let sut = calculate(&from, &to);
-  //   assert_eq!(
-  //     sut,
-  //     DateComponent {
-  //       year: 1,
-  //       month: 1,
-  //       week: 1,
-  //       day: 1,
-  //       hour: 1,
-  //       minute: 1,
-  //       second: 1,
-  //       interval_days: duration.num_days().abs() as isize,
-  //       interval_hours: duration.num_hours().abs() as isize,
-  //       interval_minutes: duration.num_minutes().abs() as isize,
-  //       interval_seconds: duration.num_seconds().abs() as isize,
-  //       invert: true,
-  //     }
-  //   );
-  // }
+    let sut = calculate(&from, &to);
+    assert_eq!(
+      sut,
+      DateComponent {
+        year: 1,
+        month: 1,
+        week: 1,
+        day: 1,
+        hour: 1,
+        minute: 1,
+        second: 1,
+        interval_days: duration.num_days().abs() as isize,
+        interval_hours: duration.num_hours().abs() as isize,
+        interval_minutes: duration.num_minutes().abs() as isize,
+        interval_seconds: duration.num_seconds().abs() as isize,
+        invert: true,
+      }
+    );
+  }
 }
