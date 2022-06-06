@@ -219,20 +219,136 @@ mod tests {
     assert_eq!(sut.invert, true);
   }
 
-  #[test]
-  fn test_next_week() {
-    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
-    let to = Utc.ymd(2020, 1, 8).and_hms(0, 0, 0);
+  #[test_case(2019, 12, 30, 2020, 1, 6; "December 30 to January 6")]
+  #[test_case(2020, 1, 6, 2020, 1, 13; "January 6 to January 13")]
+  #[test_case(2020, 1, 13, 2020, 1, 20; "January 13 to January 20")]
+  #[test_case(2020, 1, 20, 2020, 1, 27; "January 20 to January 27")]
+  #[test_case(2020, 1, 27, 2020, 2, 3; "January 27 to February 3")]
+  #[test_case(2020, 2, 3, 2020, 2, 10; "February 3 to February 10")]
+  #[test_case(2020, 2, 10, 2020, 2, 17; "February 10 to February 17")]
+  #[test_case(2020, 2, 17, 2020, 2, 24; "February 17 to February 24")]
+  #[test_case(2020, 2, 24, 2020, 3, 2; "February 24 to March 2")]
+  #[test_case(2020, 3, 2, 2020, 3, 9; "March 2 to March 9")]
+  #[test_case(2020, 3, 9, 2020, 3, 16; "March 9 to March 16")]
+  #[test_case(2020, 3, 16, 2020, 3, 23; "March 16 to March 23")]
+  #[test_case(2020, 3, 23, 2020, 3, 30; "March 23 to March 30")]
+  #[test_case(2020, 3, 30, 2020, 4, 6; "March 30 to April 6")]
+  #[test_case(2020, 4, 6, 2020, 4, 13; "April 6 to April 13")]
+  #[test_case(2020, 4, 13, 2020, 4, 20; "April 13 to April 20")]
+  #[test_case(2020, 4, 20, 2020, 4, 27; "April 20 to April 27")]
+  #[test_case(2020, 4, 27, 2020, 5, 4; "April 27 to May 4")]
+  #[test_case(2020, 5, 4, 2020, 5, 11; "May 4 to May 11")]
+  #[test_case(2020, 5, 11, 2020, 5, 18; "May 11 to May 18")]
+  #[test_case(2020, 5, 18, 2020, 5, 25; "May 18 to May 25")]
+  #[test_case(2020, 5, 25, 2020, 6, 1; "May 25 to June 1")]
+  #[test_case(2020, 6, 1, 2020, 6, 8; "June 1 to June 8")]
+  #[test_case(2020, 6, 8, 2020, 6, 15; "June 8 to June 15")]
+  #[test_case(2020, 6, 15, 2020, 6, 22; "June 15 to June 22")]
+  #[test_case(2020, 6, 22, 2020, 6, 29; "June 22 to June 29")]
+  #[test_case(2020, 6, 29, 2020, 7, 6; "June 29 to July 6")]
+  #[test_case(2020, 7, 6, 2020, 7, 13; "July 6 to July 13")]
+  #[test_case(2020, 7, 13, 2020, 7, 20; "July 13 to July 20")]
+  #[test_case(2020, 7, 20, 2020, 7, 27; "July 20 to July 27")]
+  #[test_case(2020, 7, 27, 2020, 8, 3; "July 27 to August 3")]
+  #[test_case(2020, 8, 3, 2020, 8, 10; "August 3 to August 10")]
+  #[test_case(2020, 8, 10, 2020, 8, 17; "August 10 to August 17")]
+  #[test_case(2020, 8, 17, 2020, 8, 24; "August 17 to August 24")]
+  #[test_case(2020, 8, 24, 2020, 8, 31; "August 24 to August 31")]
+  #[test_case(2020, 8, 31, 2020, 9, 7; "August 31 to September 7")]
+  #[test_case(2020, 9, 7, 2020, 9, 14; "September 7 to September 14")]
+  #[test_case(2020, 9, 14, 2020, 9, 21; "September 14 to September 21")]
+  #[test_case(2020, 9, 21, 2020, 9, 28; "September 21 to September 28")]
+  #[test_case(2020, 9, 28, 2020, 10, 5; "September 28 to October 5")]
+  #[test_case(2020, 10, 5, 2020, 10, 12; "October 5 to October 12")]
+  #[test_case(2020, 10, 12, 2020, 10, 19; "October 12 to October 19")]
+  #[test_case(2020, 10, 19, 2020, 10, 26; "October 19 to October 26")]
+  #[test_case(2020, 10, 26, 2020, 11, 2; "October 26 to November 2")]
+  #[test_case(2020, 11, 2, 2020, 11, 9; "November 2 to November 9")]
+  #[test_case(2020, 11, 9, 2020, 11, 16; "November 9 to November 16")]
+  #[test_case(2020, 11, 16, 2020, 11, 23; "November 16 to November 23")]
+  #[test_case(2020, 11, 23, 2020, 11, 30; "November 23 to November 30")]
+  #[test_case(2020, 11, 30, 2020, 12, 7; "November 30 to December 7")]
+  #[test_case(2020, 12, 7, 2020, 12, 14; "December 7 to December 14")]
+  #[test_case(2020, 12, 14, 2020, 12, 21; "December 14 to December 21")]
+  #[test_case(2020, 12, 21, 2020, 12, 28; "December 21 to December 28")]
+  fn test_next_week(
+    year_start: i32,
+    month_start: u32,
+    day_start: u32,
+    year_end: i32,
+    month_end: u32,
+    day_end: u32,
+  ) {
+    let from = Utc.ymd(year_start, month_start, day_start).and_hms(0, 0, 0);
+    let to = Utc.ymd(year_end, month_end, day_end).and_hms(0, 0, 0);
 
     let sut = calculate(&from, &to);
     assert_eq!(sut.week, 1);
     assert_eq!(sut.invert, false);
   }
 
-  #[test]
-  fn test_previous_week() {
-    let from = Utc.ymd(2020, 1, 8).and_hms(0, 0, 0);
-    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+  #[test_case(2020, 12, 28, 2020, 12, 21; "December 28 to December 21")]
+  #[test_case(2020, 12, 21, 2020, 12, 14; "December 21 to December 14")]
+  #[test_case(2020, 12, 14, 2020, 12, 7; "December 14 to December 7")]
+  #[test_case(2020, 12, 7, 2020, 11, 30; "December 7 to November 30")]
+  #[test_case(2020, 11, 30, 2020, 11, 23; "November 30 to November 23")]
+  #[test_case(2020, 11, 23, 2020, 11, 16; "November 23 to November 16")]
+  #[test_case(2020, 11, 16, 2020, 11, 9; "November 16 to November 9")]
+  #[test_case(2020, 11, 9, 2020, 11, 2; "November 9 to November 2")]
+  #[test_case(2020, 11, 2, 2020, 10, 26; "November 2 to October 26")]
+  #[test_case(2020, 10, 26, 2020, 10, 19; "October 26 to October 19")]
+  #[test_case(2020, 10, 19, 2020, 10, 12; "October 19 to October 12")]
+  #[test_case(2020, 10, 12, 2020, 10, 5; "October 12 to October 5")]
+  #[test_case(2020, 10, 5, 2020, 9, 28; "October 5 to September 28")]
+  #[test_case(2020, 9, 28, 2020, 9, 21; "September 28 to September 21")]
+  #[test_case(2020, 9, 21, 2020, 9, 14; "September 21 to September 14")]
+  #[test_case(2020, 9, 14, 2020, 9, 7; "September 14 to September 7")]
+  #[test_case(2020, 9, 7, 2020, 8, 31; "September 7 to August 31")]
+  #[test_case(2020, 8, 31, 2020, 8, 24; "August 31 to August 24")]
+  #[test_case(2020, 8, 24, 2020, 8, 17; "August 24 to August 17")]
+  #[test_case(2020, 8, 17, 2020, 8, 10; "August 17 to August 10")]
+  #[test_case(2020, 8, 10, 2020, 8, 3; "August 10 to August 3")]
+  #[test_case(2020, 8, 3, 2020, 7, 27; "August 3 to July 27")]
+  #[test_case(2020, 7, 27, 2020, 7, 20; "July 27 to July 20")]
+  #[test_case(2020, 7, 20, 2020, 7, 13; "July 20 to July 13")]
+  #[test_case(2020, 7, 13, 2020, 7, 6; "July 13 to July 6")]
+  #[test_case(2020, 7, 6, 2020, 6, 29; "July 6 to June 29")]
+  #[test_case(2020, 6, 29, 2020, 6, 22; "June 29 to June 22")]
+  #[test_case(2020, 6, 22, 2020, 6, 15; "June 22 to June 15")]
+  #[test_case(2020, 6, 15, 2020, 6, 8; "June 15 to June 8")]
+  #[test_case(2020, 6, 8, 2020, 6, 1; "June 8 to June 1")]
+  #[test_case(2020, 6, 1, 2020, 5, 25; "June 1 to May 25")]
+  #[test_case(2020, 5, 25, 2020, 5, 18; "May 25 to May 18")]
+  #[test_case(2020, 5, 18, 2020, 5, 11; "May 18 to May 11")]
+  #[test_case(2020, 5, 11, 2020, 5, 4; "May 11 to May 4")]
+  #[test_case(2020, 5, 4, 2020, 4, 27; "May 4 to April 27")]
+  #[test_case(2020, 4, 27, 2020, 4, 20; "April 27 to April 20")]
+  #[test_case(2020, 4, 20, 2020, 4, 13; "April 20 to April 13")]
+  #[test_case(2020, 4, 13, 2020, 4, 6; "April 13 to April 6")]
+  #[test_case(2020, 4, 6, 2020, 3, 30; "April 6 to March 30")]
+  #[test_case(2020, 3, 30, 2020, 3, 23; "March 30 to March 23")]
+  #[test_case(2020, 3, 23, 2020, 3, 16; "March 23 to March 16")]
+  #[test_case(2020, 3, 16, 2020, 3, 9; "March 16 to March 9")]
+  #[test_case(2020, 3, 9, 2020, 3, 2; "March 9 to March 2")]
+  #[test_case(2020, 3, 2, 2020, 2, 24; "March 2 to February 24")]
+  #[test_case(2020, 2, 24, 2020, 2, 17; "February 24 to February 17")]
+  #[test_case(2020, 2, 17, 2020, 2, 10; "February 17 to February 10")]
+  #[test_case(2020, 2, 10, 2020, 2, 3; "February 10 to February 3")]
+  #[test_case(2020, 2, 3, 2020, 1, 27; "February 3 to January 27")]
+  #[test_case(2020, 1, 27, 2020, 1, 20; "January 27 to January 20")]
+  #[test_case(2020, 1, 20, 2020, 1, 13; "January 20 to January 13")]
+  #[test_case(2020, 1, 13, 2020, 1, 6; "January 13 to January 6")]
+  #[test_case(2020, 1, 6, 2019, 12, 30; "January 6 to December 30")]
+  fn test_previous_week(
+    year_start: i32,
+    month_start: u32,
+    day_start: u32,
+    year_end: i32,
+    month_end: u32,
+    day_end: u32,
+  ) {
+    let from = Utc.ymd(year_start, month_start, day_start).and_hms(0, 0, 0);
+    let to = Utc.ymd(year_end, month_end, day_end).and_hms(0, 0, 0);
 
     let sut = calculate(&from, &to);
     assert_eq!(sut.week, 1);
