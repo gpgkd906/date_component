@@ -14,3 +14,6 @@ readme = "README.md"
 
 [dependencies]
 chrono = "0.4"
+
+[dev-dependencies]
+test-case = "2.1.0"
