@@ -11,6 +11,12 @@ pub mod date_component {
     pub week: isize,
     /// Number of days.
     pub day: isize,
+    /// Number of hours.
+    pub hour: isize,
+    /// Number of minutes.
+    pub minute: isize,
+    /// Number of seconds.
+    pub second: isize,
     /// Number of seconds.
     pub interval_seconds: isize,
     /// Number of minutes.
@@ -31,12 +37,12 @@ pub mod date_component {
       x if x <= 0 => (from_datetime, to_datetime, false),
       _ => (to_datetime, from_datetime, true),
     };
-    let interval_seconds: isize = seconds.abs() as isize;
-    let interval_minutes: isize = interval_seconds / 60;
-    let interval_hours: isize = interval_minutes / 60;
     let diff_year = to.year() - from.year();
     let diff_month = to.month() as i32 - from.month() as i32;
     let diff_day = to.day() as i32 - from.day() as i32;
+    let diff_hour = to.hour() as i64 - from.hour() as i64;
+    let diff_minute = to.minute() as i64 - from.minute() as i64;
+    let diff_second = to.second() as i64 - from.second() as i64;
 
     let (to_year, to_month) = match to.month() {
       x if x > 1 => (to.year(), to.month() - 1),
@@ -80,14 +86,41 @@ pub mod date_component {
       _ => (interval_day / 7, interval_day % 7),
     };
 
+    let (interval_hour, interval_minute) = match diff_hour {
+      x if x < 0 => (
+        adjust_ymd(to_year, to_month, from.day())
+          .and_hms(to.hour(), to.minute(), to.second())
+          .signed_duration_since(*to)
+          .num_hours()
+          .abs(),
+        diff_minute - 1,
+      ),
+      _ => (diff_hour, diff_minute),
+    };
+
+    let (interval_minute, interval_second) = match diff_minute {
+      x if x < 0 => (
+        adjust_ymd(to_year, to_month, from.day())
+          .and_hms(to.hour(), to.minute(), to.second())
+          .signed_duration_since(*to)
+          .num_minutes()
+          .abs(),
+        diff_minute - 1,
+      ),
+      _ => (interval_minute, diff_second),
+    };
+
     DateComponent {
       year: interval_year as isize,
       month: interval_month as isize,
       week: interval_week as isize,
       day: interval_day as isize,
-      interval_seconds: interval_seconds,
-      interval_minutes: interval_minutes,
-      interval_hours: interval_hours,
+      hour: interval_hour as isize,
+      minute: interval_minute as isize,
+      second: interval_second as isize,
+      interval_seconds: duration.num_seconds().abs() as isize,
+      interval_minutes: duration.num_minutes().abs() as isize,
+      interval_hours: duration.num_hours().abs() as isize,
       interval_day: duration.num_days().abs() as isize,
       invert,
     }
@@ -255,5 +288,30 @@ mod tests {
     let sut = calculate(&from, &to);
     assert_eq!(sut.interval_seconds, 1);
     assert_eq!(sut.invert, true);
+  }
+
+  #[test]
+  fn test_next_year_month_day_hour_minute_second() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2021, 2, 8).and_hms(1, 1, 1);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(
+      sut,
+      DateComponent {
+        year: 1,
+        month: 1,
+        week: 1,
+        day: 1,
+        hour: 1,
+        minute: 1,
+        second: 1,
+        interval_day: 365 + 31 + 7 + 1,
+        interval_hours: (365 + 31 + 7 + 1) * 24 + 1,
+        interval_minutes: ((365 + 31 + 7 + 1) * 24 + 1) * 60 + 1,
+        interval_seconds: (((365 + 31 + 7 + 1) * 24 + 1) * 60 + 1) * 60 + 1,
+        invert: false,
+      }
+    );
   }
 }
