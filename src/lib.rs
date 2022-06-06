@@ -118,7 +118,7 @@ mod tests {
   use chrono::prelude::*;
 
   #[test]
-  fn case_1_year_interval() {
+  fn test_1_year_interval() {
     let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
     let to = Utc.ymd(2021, 1, 1).and_hms(0, 0, 0);
 
@@ -128,7 +128,7 @@ mod tests {
   }
 
   #[test]
-  fn case_1_year_inverted_interval() {
+  fn test_1_year_inverted_interval() {
     let from = Utc.ymd(2021, 1, 1).and_hms(0, 0, 0);
     let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
@@ -138,7 +138,7 @@ mod tests {
   }
 
   #[test]
-  fn case_1_month_interval() {
+  fn test_1_month_interval() {
     let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
     let to = Utc.ymd(2020, 2, 1).and_hms(0, 0, 0);
 
@@ -148,7 +148,7 @@ mod tests {
   }
 
   #[test]
-  fn case_1_month_inverted_interval() {
+  fn test_1_month_inverted_interval() {
     let from = Utc.ymd(2020, 2, 1).and_hms(0, 0, 0);
     let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
@@ -158,7 +158,7 @@ mod tests {
   }
 
   #[test]
-  fn case_1_week_interval() {
+  fn test_1_week_interval() {
     let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
     let to = Utc.ymd(2020, 1, 8).and_hms(0, 0, 0);
 
@@ -168,7 +168,7 @@ mod tests {
   }
 
   #[test]
-  fn case_1_week_inverted_interval() {
+  fn test_1_week_inverted_interval() {
     let from = Utc.ymd(2020, 1, 8).and_hms(0, 0, 0);
     let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
@@ -178,7 +178,7 @@ mod tests {
   }
 
   #[test]
-  fn case_1_day_interval() {
+  fn test_1_day_interval() {
     let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
     let to = Utc.ymd(2020, 1, 2).and_hms(0, 0, 0);
 
@@ -188,12 +188,72 @@ mod tests {
   }
 
   #[test]
-  fn case_1_day_inverted_interval() {
+  fn test_1_day_inverted_interval() {
     let from = Utc.ymd(2020, 1, 2).and_hms(0, 0, 0);
     let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
 
     let sut = calculate(&from, &to);
     assert_eq!(sut.day, 1);
+    assert_eq!(sut.invert, true);
+  }
+
+  #[test]
+  fn test_interval_hours() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(1, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.interval_hours, 1);
+    assert_eq!(sut.invert, false);
+  }
+
+  #[test]
+  fn test_inverted_interval_hours() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(1, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.interval_hours, 1);
+    assert_eq!(sut.invert, true);
+  }
+
+  #[test]
+  fn test_interval_minutes() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 1, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.interval_minutes, 1);
+    assert_eq!(sut.invert, false);
+  }
+
+  #[test]
+  fn test_inverted_interval_minutes() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 1, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.interval_minutes, 1);
+    assert_eq!(sut.invert, true);
+  }
+
+  #[test]
+  fn test_interval_seconds() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 1);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.interval_seconds, 1);
+    assert_eq!(sut.invert, false);
+  }
+
+  #[test]
+  fn test_inverted_interval_seconds() {
+    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 1);
+    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+
+    let sut = calculate(&from, &to);
+    assert_eq!(sut.interval_seconds, 1);
     assert_eq!(sut.invert, true);
   }
 
