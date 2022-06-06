@@ -20,3 +20,6 @@ fn main() {
 }
 // DateComponent { year: 0, month: 7, day: 29, interval_seconds: 20995200, interval_minutes: 349920, interval_hours: 5832, interval_day: 243, invert: false }
 ```
+
+# Tests
+Run tests with `cargo test`. see `src/lib.rs`.
