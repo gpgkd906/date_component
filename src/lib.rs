@@ -37,7 +37,7 @@ pub mod date_component {
       x if x <= 0 => (from_datetime, to_datetime, false),
       _ => (to_datetime, from_datetime, true),
     };
-    let diff_year = to.year() - from.year();
+    let diff_year = to.year() as u32 - from.year() as u32;
     let diff_month = to.month() as i32 - from.month() as i32;
     let diff_day = to.day() as i32 - from.day() as i32;
     let diff_hour = to.hour() as i64 - from.hour() as i64;
@@ -401,20 +401,91 @@ mod tests {
     assert_eq!(sut.invert, true);
   }
 
-  #[test]
-  fn test_next_hours() {
-    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
-    let to = Utc.ymd(2020, 1, 1).and_hms(1, 0, 0);
+  #[test_case(2019, 12, 31, 23, 2020, 1, 1, 0; "New year's eve to midnight")]
+  #[test_case(2020, 1, 1, 0, 2020, 1, 1, 1; "Midnight to new year's day")]
+  #[test_case(2020, 1, 1, 2, 2020, 1, 1, 3; "Two to three at night")]
+  #[test_case(2020, 1, 1, 3, 2020, 1, 1, 4; "Three to four at night")]
+  #[test_case(2020, 1, 1, 4, 2020, 1, 1, 5; "Four to five at night")]
+  #[test_case(2020, 1, 1, 5, 2020, 1, 1, 6; "Five to six in the morning")]
+  #[test_case(2020, 1, 1, 6, 2020, 1, 1, 7; "Six to seven in the morning")]
+  #[test_case(2020, 1, 1, 7, 2020, 1, 1, 8; "Seven to eight in the morning")]
+  #[test_case(2020, 1, 1, 8, 2020, 1, 1, 9; "Eight to nine in the morning")]
+  #[test_case(2020, 1, 1, 9, 2020, 1, 1, 10; "Nine to ten in the morning")]
+  #[test_case(2020, 1, 1, 10, 2020, 1, 1, 11; "Ten to eleven in the morning")]
+  #[test_case(2020, 1, 1, 11, 2020, 1, 1, 12; "Eleven to Noon")]
+  #[test_case(2020, 1, 1, 12, 2020, 1, 1, 13; "Noon to one in the afternoon")]
+  #[test_case(2020, 1, 1, 13, 2020, 1, 1, 14; "One to two in the afternoon")]
+  #[test_case(2020, 1, 1, 14, 2020, 1, 1, 15; "Two to three in the afternoon")]
+  #[test_case(2020, 1, 1, 15, 2020, 1, 1, 16; "Three to four in the afternoon")]
+  #[test_case(2020, 1, 1, 16, 2020, 1, 1, 17; "Four to five in the afternoon")]
+  #[test_case(2020, 1, 1, 17, 2020, 1, 1, 18; "Five to six in the evening")]
+  #[test_case(2020, 1, 1, 18, 2020, 1, 1, 19; "Six to seven in the evening")]
+  #[test_case(2020, 1, 1, 19, 2020, 1, 1, 20; "Seven to eight in the evening")]
+  #[test_case(2020, 1, 1, 20, 2020, 1, 1, 21; "Eight to nine at night")]
+  #[test_case(2020, 1, 1, 21, 2020, 1, 1, 22; "Nine to ten at night")]
+  #[test_case(2020, 1, 1, 22, 2020, 1, 1, 23; "Ten to eleven at night")]
+  fn test_next_hours(
+    year_start: i32,
+    month_start: u32,
+    day_start: u32,
+    hour_start: u32,
+    year_end: i32,
+    month_end: u32,
+    day_end: u32,
+    hour_end: u32,
+  ) {
+    let from = Utc
+      .ymd(year_start, month_start, day_start)
+      .and_hms(hour_start, 0, 0);
+    let to = Utc
+      .ymd(year_end, month_end, day_end)
+      .and_hms(hour_end, 0, 0);
 
     let sut = calculate(&from, &to);
     assert_eq!(sut.interval_hours, 1);
     assert_eq!(sut.invert, false);
   }
 
-  #[test]
-  fn test_previous_hours() {
-    let from = Utc.ymd(2020, 1, 1).and_hms(1, 0, 0);
-    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+  #[test_case(2020, 1, 1, 23, 2020, 1, 1, 22; "Eleve to ten at night")]
+  #[test_case(2020, 1, 1, 22, 2020, 1, 1, 21; "Ten to nine at night")]
+  #[test_case(2020, 1, 1, 21, 2020, 1, 1, 20; "Nine to eight at night")]
+  #[test_case(2020, 1, 1, 20, 2020, 1, 1, 19; "Eight to seven in the evening")]
+  #[test_case(2020, 1, 1, 19, 2020, 1, 1, 18; "Seven to six in the evening")]
+  #[test_case(2020, 1, 1, 18, 2020, 1, 1, 17; "Six to five in the evening")]
+  #[test_case(2020, 1, 1, 17, 2020, 1, 1, 16; "Five to four in the afternoon")]
+  #[test_case(2020, 1, 1, 16, 2020, 1, 1, 15; "Four to three in the afternoon")]
+  #[test_case(2020, 1, 1, 15, 2020, 1, 1, 14; "Three to two in the afternoon")]
+  #[test_case(2020, 1, 1, 14, 2020, 1, 1, 13; "Two to one in the afternoon")]
+  #[test_case(2020, 1, 1, 13, 2020, 1, 1, 12; "One to Noon")]
+  #[test_case(2020, 1, 1, 12, 2020, 1, 1, 11; "Nooon to eleven in the morning")]
+  #[test_case(2020, 1, 1, 11, 2020, 1, 1, 10; "Eleven to ten in the morning")]
+  #[test_case(2020, 1, 1, 10, 2020, 1, 1, 9; "Ten to nine in the morning")]
+  #[test_case(2020, 1, 1, 9, 2020, 1, 1, 8; "Nine to eight in the morning")]
+  #[test_case(2020, 1, 1, 8, 2020, 1, 1, 7; "Eight to seven in the morning")]
+  #[test_case(2020, 1, 1, 7, 2020, 1, 1, 6; "Seven to six in the morning")]
+  #[test_case(2020, 1, 1, 6, 2020, 1, 1, 5; "Six to five in the morning")]
+  #[test_case(2020, 1, 1, 5, 2020, 1, 1, 4; "Five to four at night")]
+  #[test_case(2020, 1, 1, 4, 2020, 1, 1, 3; "Four to three at night")]
+  #[test_case(2020, 1, 1, 3, 2020, 1, 1, 2; "Three to two at night")]
+  #[test_case(2020, 1, 1, 2, 2020, 1, 1, 1; "Two to one at night")]
+  #[test_case(2020, 1, 1, 1, 2020, 1, 1, 0; "Midnight to new year's day")]
+  #[test_case(2020, 1, 1, 0, 2019, 12, 31, 23; "New year's eve to midnight")]
+  fn test_previous_hours(
+    year_start: i32,
+    month_start: u32,
+    day_start: u32,
+    hour_start: u32,
+    year_end: i32,
+    month_end: u32,
+    day_end: u32,
+    hour_end: u32,
+  ) {
+    let from = Utc
+      .ymd(year_start, month_start, day_start)
+      .and_hms(hour_start, 0, 0);
+    let to = Utc
+      .ymd(year_end, month_end, day_end)
+      .and_hms(hour_end, 0, 0);
 
     let sut = calculate(&from, &to);
     assert_eq!(sut.interval_hours, 1);
