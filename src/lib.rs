@@ -168,8 +168,8 @@ mod tests {
   #[test_case(2000, 1999; "end of century")]
   #[test_case(2001, 2000; "start of century")]
   #[test_case(2010, 2009; "great recession")]
-  fn test_previous_year(year_star: i32, year_end: i32) {
-    let from = Utc.ymd(year_star, 1, 1).and_hms(0, 0, 0);
+  fn test_previous_year(year_start: i32, year_end: i32) {
+    let from = Utc.ymd(year_start, 1, 1).and_hms(0, 0, 0);
     let to = Utc.ymd(year_end, 1, 1).and_hms(0, 0, 0);
 
     let sut = calculate(&from, &to);
@@ -492,20 +492,169 @@ mod tests {
     assert_eq!(sut.invert, true);
   }
 
-  #[test]
-  fn test_next_minutes() {
-    let from = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
-    let to = Utc.ymd(2020, 1, 1).and_hms(0, 1, 0);
+  #[test_case(2019, 12, 31, 23, 30, 2019, 12, 31, 23, 31; "30 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 31, 2019, 12, 31, 23, 32; "29 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 32, 2019, 12, 31, 23, 33; "28 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 33, 2019, 12, 31, 23, 34; "27 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 34, 2019, 12, 31, 23, 35; "26 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 35, 2019, 12, 31, 23, 36; "25 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 36, 2019, 12, 31, 23, 37; "24 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 37, 2019, 12, 31, 23, 38; "23 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 38, 2019, 12, 31, 23, 39; "22 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 39, 2019, 12, 31, 23, 40; "21 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 40, 2019, 12, 31, 23, 41; "20 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 41, 2019, 12, 31, 23, 42; "19 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 42, 2019, 12, 31, 23, 43; "18 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 43, 2019, 12, 31, 23, 44; "17 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 44, 2019, 12, 31, 23, 45; "16 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 45, 2019, 12, 31, 23, 46; "15 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 46, 2019, 12, 31, 23, 47; "14 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 47, 2019, 12, 31, 23, 48; "13 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 48, 2019, 12, 31, 23, 49; "12 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 49, 2019, 12, 31, 23, 50; "11 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 50, 2019, 12, 31, 23, 51; "10 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 51, 2019, 12, 31, 23, 52; "09 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 52, 2019, 12, 31, 23, 53; "08 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 53, 2019, 12, 31, 23, 54; "07 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 54, 2019, 12, 31, 23, 55; "06 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 55, 2019, 12, 31, 23, 56; "05 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 56, 2019, 12, 31, 23, 57; "04 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 57, 2019, 12, 31, 23, 58; "03 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 58, 2019, 12, 31, 23, 59; "02 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 59, 2020, 1, 1, 0, 0; "01 minute to midnight")]
+  #[test_case(2020, 1, 1, 0, 0, 2020, 1, 1, 0, 1; "01 minute past midnight")]
+  #[test_case(2020, 1, 1, 0, 1, 2020, 1, 1, 0, 2; "02 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 2, 2020, 1, 1, 0, 3; "03 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 3, 2020, 1, 1, 0, 4; "04 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 4, 2020, 1, 1, 0, 5; "05 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 5, 2020, 1, 1, 0, 6; "06 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 6, 2020, 1, 1, 0, 7; "07 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 7, 2020, 1, 1, 0, 8; "08 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 8, 2020, 1, 1, 0, 9; "09 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 9, 2020, 1, 1, 0, 10; "10 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 10, 2020, 1, 1, 0, 11; "11 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 11, 2020, 1, 1, 0, 12; "12 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 12, 2020, 1, 1, 0, 13; "13 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 13, 2020, 1, 1, 0, 14; "14 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 14, 2020, 1, 1, 0, 15; "15 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 15, 2020, 1, 1, 0, 16; "16 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 16, 2020, 1, 1, 0, 17; "17 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 17, 2020, 1, 1, 0, 18; "18 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 18, 2020, 1, 1, 0, 19; "19 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 19, 2020, 1, 1, 0, 20; "20 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 20, 2020, 1, 1, 0, 21; "21 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 21, 2020, 1, 1, 0, 22; "22 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 22, 2020, 1, 1, 0, 23; "23 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 23, 2020, 1, 1, 0, 24; "24 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 24, 2020, 1, 1, 0, 25; "25 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 25, 2020, 1, 1, 0, 26; "26 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 26, 2020, 1, 1, 0, 27; "27 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 27, 2020, 1, 1, 0, 28; "28 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 28, 2020, 1, 1, 0, 29; "29 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 29, 2020, 1, 1, 0, 30; "30 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 30, 2020, 1, 1, 0, 31; "31 minutes past midnight")]
+  fn test_next_minutes(
+    year_start: i32,
+    month_start: u32,
+    day_start: u32,
+    hour_start: u32,
+    minute_start: u32,
+    year_end: i32,
+    month_end: u32,
+    day_end: u32,
+    hour_end: u32,
+    minute_end: u32,
+  ) {
+    let from = Utc
+      .ymd(year_start, month_start, day_start)
+      .and_hms(hour_start, minute_start, 0);
+    let to = Utc
+      .ymd(year_end, month_end, day_end)
+      .and_hms(hour_end, minute_end, 0);
 
     let sut = calculate(&from, &to);
     assert_eq!(sut.interval_minutes, 1);
     assert_eq!(sut.invert, false);
   }
 
-  #[test]
-  fn test_previous_minutes() {
-    let from = Utc.ymd(2020, 1, 1).and_hms(0, 1, 0);
-    let to = Utc.ymd(2020, 1, 1).and_hms(0, 0, 0);
+  #[test_case(2020, 1, 1, 0, 30, 2020, 1, 1, 0, 29; "30 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 29, 2020, 1, 1, 0, 28; "29 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 28, 2020, 1, 1, 0, 27; "28 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 27, 2020, 1, 1, 0, 26; "27 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 26, 2020, 1, 1, 0, 25; "26 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 25, 2020, 1, 1, 0, 24; "25 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 24, 2020, 1, 1, 0, 23; "24 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 23, 2020, 1, 1, 0, 22; "23 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 22, 2020, 1, 1, 0, 21; "22 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 21, 2020, 1, 1, 0, 20; "21 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 20, 2020, 1, 1, 0, 19; "20 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 19, 2020, 1, 1, 0, 18; "19 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 18, 2020, 1, 1, 0, 17; "18 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 17, 2020, 1, 1, 0, 16; "17 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 16, 2020, 1, 1, 0, 15; "16 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 15, 2020, 1, 1, 0, 14; "15 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 14, 2020, 1, 1, 0, 13; "14 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 13, 2020, 1, 1, 0, 12; "13 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 12, 2020, 1, 1, 0, 11; "12 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 11, 2020, 1, 1, 0, 10; "11 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 10, 2020, 1, 1, 0, 9; "10 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 9, 2020, 1, 1, 0, 8; "9 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 8, 2020, 1, 1, 0, 7; "8 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 7, 2020, 1, 1, 0, 6; "7 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 6, 2020, 1, 1, 0, 5; "6 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 5, 2020, 1, 1, 0, 4; "5 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 4, 2020, 1, 1, 0, 3; "4 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 3, 2020, 1, 1, 0, 2; "3 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 2, 2020, 1, 1, 0, 1; "2 minutes past midnight")]
+  #[test_case(2020, 1, 1, 0, 1, 2020, 1, 1, 0, 0; "1 minute past midnight")]
+  #[test_case(2020, 1, 1, 0, 0, 2019, 12, 31, 23, 59; "1 minute to midnight")]
+  #[test_case(2019, 12, 31, 23, 59, 2019, 12, 31, 23, 58; "2 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 58, 2019, 12, 31, 23, 57; "3 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 57, 2019, 12, 31, 23, 56; "4 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 56, 2019, 12, 31, 23, 55; "5 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 55, 2019, 12, 31, 23, 54; "6 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 54, 2019, 12, 31, 23, 53; "7 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 53, 2019, 12, 31, 23, 52; "8 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 52, 2019, 12, 31, 23, 51; "9 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 51, 2019, 12, 31, 23, 50; "10 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 50, 2019, 12, 31, 23, 49; "11 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 49, 2019, 12, 31, 23, 48; "12 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 48, 2019, 12, 31, 23, 47; "13 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 47, 2019, 12, 31, 23, 46; "14 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 46, 2019, 12, 31, 23, 45; "15 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 45, 2019, 12, 31, 23, 44; "16 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 44, 2019, 12, 31, 23, 43; "17 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 43, 2019, 12, 31, 23, 42; "18 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 42, 2019, 12, 31, 23, 41; "19 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 41, 2019, 12, 31, 23, 40; "20 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 40, 2019, 12, 31, 23, 39; "21 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 39, 2019, 12, 31, 23, 38; "22 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 38, 2019, 12, 31, 23, 37; "23 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 37, 2019, 12, 31, 23, 36; "24 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 36, 2019, 12, 31, 23, 35; "25 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 35, 2019, 12, 31, 23, 34; "26 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 34, 2019, 12, 31, 23, 33; "27 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 33, 2019, 12, 31, 23, 32; "28 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 32, 2019, 12, 31, 23, 31; "29 minutes to midnight")]
+  #[test_case(2019, 12, 31, 23, 31, 2019, 12, 31, 23, 30; "30 minutes to midnight")]
+  fn test_previous_minutes(
+    year_start: i32,
+    month_start: u32,
+    day_start: u32,
+    hour_start: u32,
+    minute_start: u32,
+    year_end: i32,
+    month_end: u32,
+    day_end: u32,
+    hour_end: u32,
+    minute_end: u32,
+  ) {
+    let from = Utc
+      .ymd(year_start, month_start, day_start)
+      .and_hms(hour_start, minute_start, 0);
+    let to = Utc
+      .ymd(year_end, month_end, day_end)
+      .and_hms(hour_end, minute_end, 0);
 
     let sut = calculate(&from, &to);
     assert_eq!(sut.interval_minutes, 1);
