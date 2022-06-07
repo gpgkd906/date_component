@@ -17,11 +17,11 @@ pub mod date_component {
     pub minute: isize,
     /// Number of seconds.
     pub second: isize,
-    /// Number of seconds.
+    /// total number of seconds between the start and end dates.
     pub interval_seconds: isize,
-    /// Number of minutes.
+    /// total number of minutes between the start and end dates.
     pub interval_minutes: isize,
-    /// Number of hours.
+    /// total number of hours between the start and end dates.
     pub interval_hours: isize,
     /// total number of days between the start and end dates
     pub interval_days: isize,
