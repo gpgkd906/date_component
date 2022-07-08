@@ -9,6 +9,8 @@ pub mod date_component {
     pub month: isize,
     /// Number of weeks.
     pub week: isize,
+    /// Number of days remaining when using weeks.
+    pub modulo_days: isize,
     /// Number of days.
     pub day: isize,
     /// Number of hours.
@@ -74,7 +76,7 @@ pub mod date_component {
       _ => (diff_year, interval_month),
     };
 
-    let (interval_week, interval_day) = match interval_day {
+    let (interval_week, modulo_days) = match interval_day {
       x if x < 0 => (
         adjust_ymd(to_year, to_month, from.day())
           .and_hms(to.hour(), to.minute(), to.second())
@@ -114,6 +116,7 @@ pub mod date_component {
       year: interval_year as isize,
       month: interval_month as isize,
       week: interval_week as isize,
+      modulo_days: modulo_days as isize,
       day: interval_day as isize,
       hour: interval_hour as isize,
       minute: interval_minute as isize,
