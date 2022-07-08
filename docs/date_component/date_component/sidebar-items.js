@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["calculate",""]],"struct":[["DateComponent",""]]});
+initSidebarItems({"fn":[["calculate","Returns a DateComponent object that represents the difference between the from and to datetime."]],"struct":[["DateComponent",""]]});
