@@ -18,5 +18,8 @@ fn main() {
     let date_interval = date_component::calculate(&date1, &date2);
     println!("{:?}", date_interval);
 }
-// DateComponent { year: 0, month: 7, day: 29, interval_seconds: 20995200, interval_minutes: 349920, interval_hours: 5832, interval_day: 243, invert: false }
+// DateComponent { year: 0, month: 7, week: 4, remaining_days: 1, day: 29, hour: 0, minute: 0, second: 0, interval_seconds: 20995200, interval_minutes: 349920, interval_hours: 5832, interval_days: 243, invert: false }
 ```
+
+# Tests
+Run tests with `cargo test`. see `src/lib.rs`.
