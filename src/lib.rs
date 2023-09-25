@@ -32,8 +32,12 @@ pub mod date_component {
     }
 
     /// Returns a DateComponent object that represents the difference between the from and to datetime.
-    pub fn calculate(from_datetime: &DateTime<Utc>, to_datetime: &DateTime<Utc>) -> DateComponent {
-        let duration = from_datetime.signed_duration_since(*to_datetime);
+    pub fn calculate<T: chrono::TimeZone>(from_datetime: &DateTime<T>, to_datetime: &DateTime<T>) -> DateComponent {
+        let timezone = from_datetime.timezone();
+        let utc_from = from_datetime.with_timezone(&Utc);
+        let utc_to = to_datetime.with_timezone(&Utc);
+        
+        let duration = utc_from.signed_duration_since(utc_to);
         let seconds = duration.num_seconds();
         let (start, end, invert) = match seconds {
             x if x <= 0 => (from_datetime, to_datetime, false),
@@ -63,15 +67,16 @@ pub mod date_component {
                     end.hour(),
                     end.minute(),
                     end.second(),
+                    &timezone,
                 )
-                .signed_duration_since(*end)
+                .signed_duration_since(end)
                 .num_days()
                 .abs(),
             )
         } else {
             (
                 interval_month,
-                Utc.with_ymd_and_hms(
+                timezone.with_ymd_and_hms(
                     end.year(),
                     end.month(),
                     start.day(),
@@ -80,7 +85,7 @@ pub mod date_component {
                     end.second(),
                 )
                 .unwrap()
-                .signed_duration_since(*end)
+                .signed_duration_since(end)
                 .num_days()
                 .abs(),
             )
@@ -101,8 +106,9 @@ pub mod date_component {
                     end.hour(),
                     end.minute(),
                     end.second(),
+                    &timezone,
                 )
-                .signed_duration_since(*end)
+                .signed_duration_since(end)
                 .num_days()
                 .abs()
                     / 7,
@@ -121,8 +127,9 @@ pub mod date_component {
                     end.hour(),
                     end.minute(),
                     end.second(),
+                    &timezone,
                 )
-                .signed_duration_since(*end)
+                .signed_duration_since(end)
                 .num_hours()
                 .abs(),
                 interval_minute - 1,
@@ -140,8 +147,9 @@ pub mod date_component {
                     end.hour(),
                     end.minute(),
                     end.second(),
+                    &timezone,
                 )
-                .signed_duration_since(*end)
+                .signed_duration_since(end)
                 .num_minutes()
                 .abs(),
                 interval_second - 1,
@@ -170,17 +178,18 @@ pub mod date_component {
     /// Given date specified by year / month / day where the `day` may be invalid,
     /// (e.g. 2021-02-30), return the nearest valid day before it
     /// (e.g. 2021-02-28).
-    fn get_nearest_day_before(
+    fn get_nearest_day_before<T: TimeZone>(
         year: i32,
         month: u32,
         day: u32,
         hour: u32,
         min: u32,
         sec: u32,
-    ) -> DateTime<Utc> {
+        timezone: &T
+    ) -> DateTime<T> {
         let mut subtract = 0;
         loop {
-            match Utc.with_ymd_and_hms(year, month, day - subtract, hour, min, sec) {
+            match timezone.with_ymd_and_hms(year, month, day - subtract, hour, min, sec) {
                 chrono::LocalResult::None => subtract += 1,
                 chrono::LocalResult::Single(d) => {
                     return d;
@@ -198,6 +207,13 @@ mod tests {
     use super::date_component::*;
     use chrono::prelude::*;
     use test_case::test_case;
+    use chrono_tz::US::Pacific;
+    use chrono_tz::Asia::Shanghai;
+    use chrono_tz::Asia::Tokyo;
+    use chrono_tz::Europe::Paris;
+    use chrono_tz::Pacific::Midway;
+    use chrono_tz::Africa::Lome;
+
 
     #[test_case(1998, 1999; "world cup")]
     #[test_case(1999, 2000; "end of century")]
@@ -206,6 +222,14 @@ mod tests {
     fn test_next_year(year_start: i32, year_end: i32) {
         let from = Utc.with_ymd_and_hms(year_start, 1, 1, 0, 0, 0).unwrap();
         let to = Utc.with_ymd_and_hms(year_end, 1, 1, 0, 0, 0).unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.year, 1);
+        assert_eq!(sut.invert, false);
+
+        // with shared timezone
+        let from = Pacific.with_ymd_and_hms(year_start, 1, 1, 0, 0, 0).unwrap();
+        let to = Pacific.with_ymd_and_hms(year_end, 1, 1, 0, 0, 0).unwrap();
 
         let sut = calculate(&from, &to);
         assert_eq!(sut.year, 1);
@@ -219,6 +243,14 @@ mod tests {
     fn test_previous_year(year_start: i32, year_end: i32) {
         let from = Utc.with_ymd_and_hms(year_start, 1, 1, 0, 0, 0).unwrap();
         let to = Utc.with_ymd_and_hms(year_end, 1, 1, 0, 0, 0).unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.year, 1);
+        assert_eq!(sut.invert, true);
+
+        // with shared timezone
+        let from = Shanghai.with_ymd_and_hms(year_start, 1, 1, 0, 0, 0).unwrap();
+        let to = Shanghai.with_ymd_and_hms(year_end, 1, 1, 0, 0, 0).unwrap();
 
         let sut = calculate(&from, &to);
         assert_eq!(sut.year, 1);
@@ -246,6 +278,20 @@ mod tests {
             .unwrap();
 
         let sut = calculate(&from, &to);
+        println!("utf_result: {:?}", sut);
+        assert_eq!(sut.month, 1);
+        assert_eq!(sut.invert, false);
+
+        // with shared timezone
+        let from = Tokyo
+            .with_ymd_and_hms(year_start, month_start, 1, 0, 0, 0)
+            .unwrap();
+        let to = Tokyo
+            .with_ymd_and_hms(year_end, month_end, 1, 0, 0, 0)
+            .unwrap();
+        
+        let sut = calculate(&from, &to);
+        println!("tokyo_result: {:?}", sut);
         assert_eq!(sut.month, 1);
         assert_eq!(sut.invert, false);
     }
@@ -267,6 +313,18 @@ mod tests {
             .with_ymd_and_hms(year_start, month_start, 1, 0, 0, 0)
             .unwrap();
         let to = Utc
+            .with_ymd_and_hms(year_end, month_end, 1, 0, 0, 0)
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.month, 1);
+        assert_eq!(sut.invert, true);
+
+        // with shared timezone
+        let from = Paris
+            .with_ymd_and_hms(year_start, month_start, 1, 0, 0, 0)
+            .unwrap();
+        let to = Paris
             .with_ymd_and_hms(year_end, month_end, 1, 0, 0, 0)
             .unwrap();
 
@@ -345,6 +403,18 @@ mod tests {
         let sut = calculate(&from, &to);
         assert_eq!(sut.week, 1);
         assert_eq!(sut.invert, false);
+
+        // with shared timezone
+        let from = Midway
+        .with_ymd_and_hms(year_start, month_start, day_start, 0, 0, 0)
+        .unwrap();
+        let to = Midway
+            .with_ymd_and_hms(year_end, month_end, day_end, 0, 0, 0)
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.week, 1);
+        assert_eq!(sut.invert, false);
     }
 
     #[test_case(2020, 12, 28, 2020, 12, 21; "December 28 to December 21")]
@@ -417,6 +487,18 @@ mod tests {
         let sut = calculate(&from, &to);
         assert_eq!(sut.week, 1);
         assert_eq!(sut.invert, true);
+
+        // with shared timezone
+        let from = Lome
+            .with_ymd_and_hms(year_start, month_start, day_start, 0, 0, 0)
+            .unwrap();
+        let to = Lome
+            .with_ymd_and_hms(year_end, month_end, day_end, 0, 0, 0)
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.week, 1);
+        assert_eq!(sut.invert, true);
     }
 
     #[test_case(2019, 12, 29, 2019, 12, 30; "Sunday to Monday")]
@@ -444,6 +526,17 @@ mod tests {
         let sut = calculate(&from, &to);
         assert_eq!(sut.day, 1);
         assert_eq!(sut.invert, false);
+
+        // with shared timezone
+        let from = Shanghai
+            .with_ymd_and_hms(year_start, month_start, day_start, 0, 0, 0)
+            .unwrap();
+        let to = Shanghai
+            .with_ymd_and_hms(year_end, month_end, day_end, 0, 0, 0)
+            .unwrap();
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.day, 1);
+        assert_eq!(sut.invert, false);
     }
 
     #[test_case(2020, 1, 5, 2020, 1, 4; "Sunday to Saturday")]
@@ -468,6 +561,19 @@ mod tests {
             .with_ymd_and_hms(year_end, month_end, day_end, 0, 0, 0)
             .unwrap();
 
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.day, 1);
+        assert_eq!(sut.invert, true);
+
+        // with shared timezone
+        let from = Tokyo
+            .with_ymd_and_hms(year_start, month_start, day_start, 0, 0, 0)
+            .unwrap();
+        let to = Tokyo
+            .with_ymd_and_hms(year_end, month_end, day_end, 0, 0, 0)
+            .unwrap();
+        println!("from: {:?}, to: {:?}", from, to);
+        println!("from: {:?}, to: {:?}", from.with_timezone(&Utc), to.with_timezone(&Utc));
         let sut = calculate(&from, &to);
         assert_eq!(sut.day, 1);
         assert_eq!(sut.invert, true);
@@ -516,6 +622,18 @@ mod tests {
         let sut = calculate(&from, &to);
         assert_eq!(sut.interval_hours, 1);
         assert_eq!(sut.invert, false);
+
+        // with shared timezone
+        let from = Paris
+            .with_ymd_and_hms(year_start, month_start, day_start, hour_start, 0, 0)
+            .unwrap();
+        let to = Paris
+            .with_ymd_and_hms(year_end, month_end, day_end, hour_end, 0, 0)
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.interval_hours, 1);
+        assert_eq!(sut.invert, false);
     }
 
     #[test_case(2020, 1, 1, 23, 2020, 1, 1, 22; "Eleve to ten at night")]
@@ -556,6 +674,18 @@ mod tests {
             .with_ymd_and_hms(year_start, month_start, day_start, hour_start, 0, 0)
             .unwrap();
         let to = Utc
+            .with_ymd_and_hms(year_end, month_end, day_end, hour_end, 0, 0)
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.interval_hours, 1);
+        assert_eq!(sut.invert, true);
+
+        // with shared timezone
+        let from = Midway
+            .with_ymd_and_hms(year_start, month_start, day_start, hour_start, 0, 0)
+            .unwrap();
+        let to = Midway
             .with_ymd_and_hms(year_end, month_end, day_end, hour_end, 0, 0)
             .unwrap();
 
@@ -654,6 +784,25 @@ mod tests {
         let sut = calculate(&from, &to);
         assert_eq!(sut.interval_minutes, 1);
         assert_eq!(sut.invert, false);
+
+        // with shared timezone
+        let from = Lome
+            .with_ymd_and_hms(
+                year_start,
+                month_start,
+                day_start,
+                hour_start,
+                minute_start,
+                0,
+            )
+            .unwrap();
+        let to = Lome
+            .with_ymd_and_hms(year_end, month_end, day_end, hour_end, minute_end, 0)
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.interval_minutes, 1);
+        assert_eq!(sut.invert, false);
     }
 
     #[test_case(2020, 1, 1, 0, 30, 2020, 1, 1, 0, 29; "30 minutes after midnight")]
@@ -739,6 +888,25 @@ mod tests {
             )
             .unwrap();
         let to = Utc
+            .with_ymd_and_hms(year_end, month_end, day_end, hour_end, minute_end, 0)
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.interval_minutes, 1);
+        assert_eq!(sut.invert, true);
+
+        // with shared timezone
+        let from = Pacific
+            .with_ymd_and_hms(
+                year_start,
+                month_start,
+                day_start,
+                hour_start,
+                minute_start,
+                0,
+            )
+            .unwrap();
+        let to = Pacific
             .with_ymd_and_hms(year_end, month_end, day_end, hour_end, minute_end, 0)
             .unwrap();
 
@@ -841,6 +1009,27 @@ mod tests {
         let sut = calculate(&from, &to);
         assert_eq!(sut.interval_seconds, 1);
         assert_eq!(sut.invert, false);
+
+        // with shared timezone
+        let from = Pacific
+            .with_ymd_and_hms(
+                year_start,
+                month_start,
+                day_start,
+                hour_start,
+                minute_start,
+                second_start,
+            )
+            .unwrap();
+        let to = Pacific
+            .with_ymd_and_hms(
+                year_end, month_end, day_end, hour_end, minute_end, second_end,
+            )
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.interval_seconds, 1);
+        assert_eq!(sut.invert, false);
     }
 
     #[test_case(2020, 1, 1, 0, 0, 30, 2020, 1, 1, 0, 0, 29; "30 seconds after midnight")]
@@ -928,6 +1117,27 @@ mod tests {
             )
             .unwrap();
         let to = Utc
+            .with_ymd_and_hms(
+                year_end, month_end, day_end, hour_end, minute_end, second_end,
+            )
+            .unwrap();
+
+        let sut = calculate(&from, &to);
+        assert_eq!(sut.interval_seconds, 1);
+        assert_eq!(sut.invert, true);
+
+        // with shared timezone
+        let from = Pacific
+            .with_ymd_and_hms(
+                year_start,
+                month_start,
+                day_start,
+                hour_start,
+                minute_start,
+                second_start,
+            )
+            .unwrap();
+        let to = Pacific
             .with_ymd_and_hms(
                 year_end, month_end, day_end, hour_end, minute_end, second_end,
             )
