@@ -1,6 +1,6 @@
 # date_component
 
-calculate date interval with chrono.
+calculate dates interval between 2 dates with shared timezone with chrono.
 
 # API
 https://gpgkd906.github.io/date_component/date_component/
