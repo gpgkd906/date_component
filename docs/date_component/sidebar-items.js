@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["date_component",""]]});
+window.SIDEBAR_ITEMS = {"mod":["date_component"]};
