@@ -216,6 +216,7 @@ mod tests {
     use chrono_tz::US::Pacific;
     use chrono_tz::Asia::Shanghai;
     use chrono_tz::Asia::Tokyo;
+    use chrono_tz::Asia::Kolkata;
     use chrono_tz::Europe::Paris;
     use chrono_tz::Pacific::Midway;
     use chrono_tz::Africa::Lome;
@@ -1133,7 +1134,7 @@ mod tests {
         assert_eq!(sut.invert, true);
 
         // with shared timezone
-        let from = Pacific
+        let from = Kolkata
             .with_ymd_and_hms(
                 year_start,
                 month_start,
@@ -1143,7 +1144,7 @@ mod tests {
                 second_start,
             )
             .unwrap();
-        let to = Pacific
+        let to = Kolkata
             .with_ymd_and_hms(
                 year_end, month_end, day_end, hour_end, minute_end, second_end,
             )
