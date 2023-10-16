@@ -1,7 +1,7 @@
 # date_component
 
 calculate dates interval between 2 dates with shared timezone with chrono.
-and the calculation is considered with Daylight Saving Time.
+and the calculation is also considered with DST if necessary.
 
 # API
 https://gpgkd906.github.io/date_component/date_component/
