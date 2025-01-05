@@ -1,6 +1,6 @@
 [package]
 name = "date_component"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["chenhan <gpgkd906@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -14,7 +14,7 @@ readme = "README.md"
 
 [dependencies]
 chrono = "0.4"
-chrono-tz = "0.8.3"
+chrono-tz = "0.10"
 
 [dev-dependencies]
-test-case = "2.1.0"
+test-case = "3.3"
