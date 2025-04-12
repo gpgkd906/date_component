@@ -998,11 +998,11 @@ fn test_previous_year_month_day_hour_minute_second() {
 }
 
 #[test]
-fn test_dst_transition_forward() {
+fn test_difference_during_dst() {
     let start = Los_Angeles.with_ymd_and_hms(2022, 3, 14, 1, 30, 0).unwrap();
     let end = Los_Angeles.with_ymd_and_hms(2022, 3, 14, 3, 30, 0).unwrap();
     let diff = calculate(&start, &end);
-    assert_eq!(diff.hour, 2);  // Ensure that the difference is 2 hours even if one hour is skipped
+    assert_eq!(diff.hour, 2);
 }
 
 #[test]
