@@ -36,7 +36,7 @@ pub mod date_component {
         let timezone = from_datetime.timezone();
         let utc_from = from_datetime.with_timezone(&Utc);
         let utc_to = to_datetime.with_timezone(&Utc);
-        
+
         let duration = utc_from.signed_duration_since(utc_to);
         let seconds = duration.num_seconds();
         let (start, end, invert) = match seconds {
@@ -44,135 +44,57 @@ pub mod date_component {
             _ => (to_datetime, from_datetime, true),
         };
 
-        let interval_year = end.year() as i64 - start.year() as i64;
-        let interval_month = end.month() as i64 - start.month() as i64;
-        let interval_day = end.day() as i64 - start.day() as i64;
-        let interval_hour = end.hour() as i64 - start.hour() as i64;
-        let interval_minute = end.minute() as i64 - start.minute() as i64;
-        let interval_second = end.second() as i64 - start.second() as i64;
-
-        // as with dst in some timezone，the duration may different with interval
-        // so we need to use the duration in the later
+        // Use mutable variables for interval components
+        let mut year = end.year() as i64 - start.year() as i64;
+        let mut month = end.month() as i64 - start.month() as i64;
+        let mut day = end.day() as i64 - start.day() as i64;
+        
+        // For DST handling, we need to use duration for time components
+        // instead of calculating differences directly
         let duration_hours = duration.num_hours().abs() % 24;
         let duration_minutes = duration.num_minutes().abs() % 60;
         let duration_seconds = duration.num_seconds().abs() % 60;
 
+        // Now handle date borrowing (days -> months -> years)
         let (previous_year, previous_month) = if end.month() == 1 {
             (end.year() - 1, 12)
         } else {
             (end.year(), end.month() - 1)
         };
 
-        let (interval_month, interval_day) = if interval_day < 0 {
-            (
-                interval_month - 1,
-                get_nearest_day_before(
-                    previous_year,
-                    previous_month,
-                    start.day(),
-                    end.hour(),
-                    end.minute(),
-                    end.second(),
-                    &timezone,
-                )
-                .signed_duration_since(end)
-                .num_days()
-                .abs(),
-            )
-        } else {
-            (
-                interval_month,
-                timezone.with_ymd_and_hms(
-                    end.year(),
-                    end.month(),
-                    start.day(),
-                    end.hour(),
-                    end.minute(),
-                    end.second(),
-                )
-                .unwrap()
-                .signed_duration_since(end)
-                .num_days()
-                .abs(),
-            )
+        if day < 0 {
+            month -= 1;
+            // Add days in the month *before* the end date's month.
+            // Use get_nearest_day_before to find the last day of that month.
+            let last_day_of_prev_month = get_nearest_day_before(
+                previous_year,
+                previous_month,
+                31, // Try 31, it will be adjusted down correctly
+                0, 0, 0, // Time doesn't matter for finding the last day
+                &timezone
+            );
+            day += last_day_of_prev_month.day() as i64;
+        }
+
+        if month < 0 {
+            month += 12;
+            year -= 1;
         };
 
-        let (interval_year, interval_month) = if interval_month < 0 {
-            (interval_year - 1, interval_month + 12)
-        } else {
-            (interval_year, interval_month)
-        };
+        // Calculate week and modulo_days based on the final adjusted day value
+        let week = day / 7;
+        let modulo_days = day % 7;
 
-        let (interval_week, modulo_days) = if interval_day < 0 {
-            (
-                get_nearest_day_before(
-                    previous_year,
-                    previous_month,
-                    start.day(),
-                    end.hour(),
-                    end.minute(),
-                    end.second(),
-                    &timezone,
-                )
-                .signed_duration_since(end)
-                .num_days()
-                .abs()
-                    / 7,
-                interval_day + 7,
-            )
-        } else {
-            (interval_day / 7, interval_day % 7)
-        };
-
-        let (interval_hour, interval_minute) = if interval_hour < 0 {
-            (
-                get_nearest_day_before(
-                    previous_year,
-                    previous_month,
-                    start.day(),
-                    end.hour(),
-                    end.minute(),
-                    end.second(),
-                    &timezone,
-                )
-                .signed_duration_since(end)
-                .num_hours()
-                .abs(),
-                interval_minute - 1,
-            )
-        } else {
-            (duration_hours, duration_minutes)
-        };
-
-        let (interval_minute, interval_second) = if interval_minute < 0 {
-            (
-                get_nearest_day_before(
-                    previous_year,
-                    previous_month,
-                    start.day(),
-                    end.hour(),
-                    end.minute(),
-                    end.second(),
-                    &timezone,
-                )
-                .signed_duration_since(end)
-                .num_minutes()
-                .abs(),
-                interval_second - 1,
-            )
-        } else {
-            (duration_minutes, duration_seconds)
-        };
-
+        // Return the final DateComponent
         DateComponent {
-            year: interval_year as isize,
-            month: interval_month as isize,
-            week: interval_week as isize,
+            year: year as isize,
+            month: month as isize,
+            week: week as isize,
             modulo_days: modulo_days as isize,
-            day: interval_day as isize,
-            hour: interval_hour as isize,
-            minute: interval_minute as isize,
-            second: interval_second as isize,
+            day: day as isize,       // Store the final adjusted day count
+            hour: duration_hours as isize,     // Use duration-based hours for DST handling
+            minute: duration_minutes as isize, // Use duration-based minutes for DST handling
+            second: duration_seconds as isize, // Use duration-based seconds for DST handling
             interval_seconds: duration.num_seconds().abs() as isize,
             interval_minutes: duration.num_minutes().abs() as isize,
             interval_hours: duration.num_hours().abs() as isize,
