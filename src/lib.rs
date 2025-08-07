@@ -34,14 +34,13 @@ pub mod date_component {
     /// Returns a DateComponent object that represents the difference between the from and to datetime.
     pub fn calculate<T: chrono::TimeZone>(from_datetime: &DateTime<T>, to_datetime: &DateTime<T>) -> DateComponent {
         let timezone = from_datetime.timezone();
-        let utc_from = from_datetime.with_timezone(&Utc);
-        let utc_to = to_datetime.with_timezone(&Utc);
+        let to_datetime_in_from_tz = to_datetime.with_timezone(&timezone);
 
-        let duration = utc_from.signed_duration_since(utc_to);
+        let duration = from_datetime.clone().signed_duration_since(to_datetime.clone());
         let seconds = duration.num_seconds();
         let (start, end, invert) = match seconds {
-            x if x <= 0 => (from_datetime, to_datetime, false),
-            _ => (to_datetime, from_datetime, true),
+            x if x <= 0 => (from_datetime.clone(), to_datetime_in_from_tz, false),
+            _ => (to_datetime_in_from_tz, from_datetime.clone(), true),
         };
 
         // Use mutable variables for interval components
@@ -127,5 +126,29 @@ pub mod date_component {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod internal_tests {
+    use super::*;
+    use chrono::prelude::*;
+
+    #[test]
+    fn test_get_nearest_day_before_regular() {
+        let dt = get_nearest_day_before(2023, 2, 30, 0, 0, 0, &Utc);
+        assert_eq!(dt.day(), 28);
+    }
+
+    #[test]
+    fn test_get_nearest_day_before_leap() {
+        let dt = get_nearest_day_before(2024, 2, 30, 0, 0, 0, &Utc);
+        assert_eq!(dt.day(), 29);
+    }
+
+    #[test]
+    fn test_get_nearest_day_before_big_month() {
+        let dt = get_nearest_day_before(2023, 1, 32, 0, 0, 0, &Utc);
+        assert_eq!(dt.day(), 31);
     }
 }

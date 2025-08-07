@@ -2,6 +2,7 @@ use date_component::date_component::*;
 use chrono::prelude::*;
 use chrono_tz::America::Los_Angeles;
 use chrono_tz::Europe::Paris;
+use chrono_tz::Australia::Sydney;
 
 #[test]
 fn test_difference_during_dst() {
@@ -40,6 +41,43 @@ fn assert_date_component_eq(actual: DateComponent, expected: DateComponent) {
 fn test_dst_start_transition_los_angeles() {
     let before_dst_start = Los_Angeles.with_ymd_and_hms(2022, 3, 13, 1, 59, 59).unwrap();
     let after_dst_start = Los_Angeles.with_ymd_and_hms(2022, 3, 13, 3, 0, 0).unwrap();
+    let diff = calculate(&before_dst_start, &after_dst_start);
+    let expected = DateComponent {
+        year: 0,
+        month: 0,
+        week: 0,
+        modulo_days: 0,
+        day: 0,
+        hour: 0,
+        minute: 0,
+        second: 1,
+        interval_seconds: 1,
+        interval_minutes: 0,
+        interval_hours: 0,
+        interval_days: 0,
+        invert: false,
+    };
+    assert_date_component_eq(diff, expected);
+}
+
+#[test]
+fn test_one_year_span_with_dst() {
+    let start = Los_Angeles.with_ymd_and_hms(2022, 1, 1, 0, 0, 0).unwrap();
+    let end = Los_Angeles.with_ymd_and_hms(2023, 1, 1, 0, 0, 0).unwrap();
+    let diff = calculate(&start, &end);
+    assert_eq!(diff.year, 1);
+    assert_eq!(diff.month, 0);
+    assert_eq!(diff.day, 0);
+    assert_eq!(diff.hour, 0);
+    assert_eq!(diff.minute, 0);
+    assert_eq!(diff.second, 0);
+    assert!(!diff.invert);
+}
+
+#[test]
+fn test_dst_start_transition_sydney() {
+    let before_dst_start = Sydney.with_ymd_and_hms(2022, 10, 2, 1, 59, 59).unwrap();
+    let after_dst_start = Sydney.with_ymd_and_hms(2022, 10, 2, 3, 0, 0).unwrap();
     let diff = calculate(&before_dst_start, &after_dst_start);
     let expected = DateComponent {
         year: 0,

@@ -89,6 +89,46 @@ fn test_exact_one_year_period() {
 }
 
 #[test]
+fn test_same_timestamp_different_timezone() {
+    use chrono_tz::America::New_York;
+    use chrono_tz::Europe::London;
+
+    let t = 1672531200; // 2023-01-01 00:00:00 UTC
+    let from = Utc.timestamp_opt(t, 0).unwrap().with_timezone(&New_York);
+    let to = Utc.timestamp_opt(t, 0).unwrap().with_timezone(&London);
+
+    let diff = calculate(&from, &to);
+    assert_eq!(diff.year, 0);
+    assert_eq!(diff.month, 0);
+    assert_eq!(diff.day, 0);
+    assert_eq!(diff.hour, 0);
+    assert_eq!(diff.minute, 0);
+    assert_eq!(diff.second, 0);
+    assert_eq!(diff.interval_days, 0);
+    assert!(!diff.invert);
+}
+
+#[test]
+fn test_large_time_span() {
+    let from = Utc.with_ymd_and_hms(1000, 1, 1, 0, 0, 0).unwrap();
+    let to = Utc.with_ymd_and_hms(3000, 1, 1, 0, 0, 0).unwrap();
+    let diff = calculate(&from, &to);
+    assert_eq!(diff.year, 2000);
+    assert_eq!(diff.month, 0);
+    assert_eq!(diff.day, 0);
+    assert!(!diff.invert);
+}
+
+#[test]
+fn test_across_leap_day() {
+    let from = Utc.with_ymd_and_hms(2024, 2, 28, 0, 0, 0).unwrap();
+    let to = Utc.with_ymd_and_hms(2024, 3, 1, 0, 0, 0).unwrap();
+    let diff = calculate(&from, &to);
+    assert_eq!(diff.interval_days, 2);
+    assert!(!diff.invert);
+}
+
+#[test]
 fn test_same_start_and_end_date() {
     let from = Utc.with_ymd_and_hms(2022, 1, 1, 0, 0, 0).unwrap();
     let to = Utc.with_ymd_and_hms(2022, 1, 1, 0, 0, 0).unwrap();
