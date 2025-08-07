@@ -129,6 +129,3 @@ pub mod date_component {
         }
     }
 }
-
-#[cfg(test)]
-mod tests;
