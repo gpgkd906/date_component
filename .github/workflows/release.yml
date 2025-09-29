@@ -11,21 +11,15 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  publish:
     runs-on: ubuntu-latest
-
+    environment: release  # Optional: for enhanced security
+    permissions:
+      id-token: write     # Required for OIDC token exchange
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-    - name: Login into crates.io
-      run: cargo login ${{ secrets.CRATES_IO }}
-    - name: Build binaries in "release" mode
-      run: cargo build -r
-    - name: "Package for crates.io"
-      run: cargo package
-    - name: "Publish to crates.io"
-      run: cargo publish
+    - uses: actions/checkout@v5
+    - uses: rust-lang/crates-io-auth-action@v1
+      id: auth
+    - run: cargo publish
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
